@@ -4,19 +4,31 @@ const app = express()
 const port = 5000
 const urlTable = {}
 
+const URL = require("url").URL;
+
+const stringIsAValidUrl = (s) => {
+try {
+    new URL(s);
+    return true;
+} catch (err) {
+    return false;
+}
+};
+
 app.get('/', (req, res) => {
     res.send({ 'Hello': 'World' })
 })
 
-app.get('/item/:item_id', (req, res) => {
-    res.send({
-        'item_id': req.params.item_id,
-        'q': req.query.q === undefined ? null : req.query.q
-    })
+app.get('/url-test', (req, res) => {
+    res.send(stringIsAValidUrl(req.query.url))
 })
 
 app.get('/short', (req, res) => {
+    if(!stringIsAValidUrl(req.query.url)){
+        res.send("Cannot Shorten Invalid URL")
+    }
     let shortLink = minifyUrl(req.query.url)
+
     if(!Object.values(urlTable).includes(shortLink.originalURL)){
         urlTable[shortLink.shortURL] = shortLink.originalURL
     }
@@ -33,10 +45,7 @@ app.get('/short', (req, res) => {
 
 app.get('/long', (req, res) => {
     if(urlTable[req.query.url]){
-        res.send({
-            'fullUrl': urlTable[req.query.url],
-            'shortUrl': req.query.url
-        })
+        res.send(urlTable[req.query.url])
     }
     else{
         res.send("Error: Not a Valid Short URL")
