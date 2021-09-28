@@ -22,7 +22,9 @@ app.get('/', (req, res) => {
 app.get('/url-test', (req, res) => {
     res.send(stringIsAValidUrl(req.query.url))
 })
-
+/*
+    Takes a full length url and turns it into a shortened url
+*/
 app.get('/short', (req, res) => {
     if(!stringIsAValidUrl(req.query.url)){
         res.send("Cannot Shorten Invalid URL")
@@ -42,10 +44,38 @@ app.get('/short', (req, res) => {
     }
     res.send(shortLink.shortURL)
 })
-
+/*
+* Takes a shortened url and returns the original long url in either JSON or HTML table format depending on the html query parameter
+*/
+app.get('/mapping', (req, res) => {
+    const shortUrl = req.query.url
+    if(urlTable[req.query.url]){
+        let obj = {"Short URL":shortUrl,"Long URL":urlTable[req.query.url]}
+        let html = (`<table>
+        <tr>
+          <th>Long URL</th>
+          <th>Short URL</th>
+        </tr>
+        <tr>
+          <td>`+urlTable[req.query.url]+`</td>
+          <td>`+shortUrl+`</td>
+        </tr>
+    </table>`)
+        if(req.query.html){
+            res.send(html)
+        }
+        res.send(obj)
+    }
+    else{
+        res.send("Error: Not a Valid Short URL")
+    }
+})
+/*
+* Takes a long url and returns the mapping from the long url to a short url
+*/
 app.get('/long', (req, res) => {
     if(urlTable[req.query.url]){
-        res.send(urlTable[req.query.url])
+        res.redirect(urlTable[req.query.url])
     }
     else{
         res.send("Error: Not a Valid Short URL")
